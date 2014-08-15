@@ -1,14 +1,14 @@
 {
   "name": "mongo-heartbeat",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Ping mongodb every x seconds to prevent disconnections",
   "main": "index.js",
   "scripts": {
     "test": "mocha --reporter spec"
   },
   "repository": {
-    "type" : "git",
-    "url" : "http://github.com/auth0/mongo-heartbeat.git"
+    "type": "git",
+    "url": "http://github.com/auth0/mongo-heartbeat.git"
   },
   "author": "José F. Romaniello <jfromaniello@gmail.com> (http://joseoncode.com)",
   "license": "MIT",
