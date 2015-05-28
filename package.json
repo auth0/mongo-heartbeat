@@ -1,6 +1,6 @@
 {
   "name": "mongo-heartbeat",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Ping mongodb every x seconds to prevent disconnections",
   "main": "index.js",
   "scripts": {
