@@ -2,12 +2,14 @@ var xtend = require('xtend');
 var debug = require('debug')('mongo-heartbeat');
 var error = require('debug')('mongo-heartbeat');
 error.log = console.error.bind(console);
+var cb = require('cb');
 
 var EventEmitter = require('events').EventEmitter;
 
 var defaults = {
   timeout: 10000,
   interval: 5000,
+  tolerance: 1
 };
 
 function Pinger(db, options) {
@@ -15,6 +17,8 @@ function Pinger(db, options) {
     return new Pinger(db, options);
   }
   EventEmitter.call(this);
+
+  this._current_failures = 0;
   this._db = db;
   this._options = xtend(defaults, options || {});
   this._recurseCheck();
@@ -25,24 +29,32 @@ Pinger.prototype = Object.create(EventEmitter.prototype);
 Pinger.prototype._check = function check(callback) {
   var db = this._db;
   var self = this;
-  function fail(err) {
-    self.stop = true;
-    err = err || new Error('the command didn\'t respond in ' + self._options.timeout + 'ms');
+
+  function fail (err) {
+    self.stop();
     error(err.message);
     return callback(err);
   }
 
-  var ping_check = setTimeout(fail, this._options.timeout);
+  db.command({ping: 1}, cb(function (err) {
+    self._current_failures = err ? (self._current_failures + 1) : 0;
+    if (err && self._current_failures >= self._options.tolerance) {
+      var error = err;
 
-  db.command({ping: 1}, function (err) {
-    clearTimeout(ping_check);
-    if (err) {
-      return fail(err);
+      if (err instanceof cb.TimeoutError) {
+        if (self._current_failures === 1) {
+          error = new Error('the command didn\'t respond in ' + self._options.timeout + 'ms');
+        } else {
+          error = new Error('the command didn\'t respond in ' + self._options.timeout + 'ms after ' + self._current_failures + ' attempts');
+        }
+      }
+
+      return fail(error);
     }
     self.emit('heartbeat');
     debug('heartbeat');
     callback();
-  });
+  }).timeout(this._options.timeout));
 };
 
 Pinger.prototype._recurseCheck = function () {

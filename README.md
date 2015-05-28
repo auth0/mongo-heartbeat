@@ -15,6 +15,7 @@ var MongoHeartbeat = require('mongo-heartbeat');
 var hb = MongoHeartbeat(db, {
   interval: 5000, //defaults to 5000 ms,
   timeout: 10000  //defaults to 10000 ms
+  tolerance: 2    //defaults to 1 attempt
 });
 
 hb.on('error', function (err) {
