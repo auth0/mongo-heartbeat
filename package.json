@@ -14,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "cb": "~0.1.0",
-    "debug": "~1.0.2",
+    "debug": "~2.2.0",
     "xtend": "~3.0.0"
   },
   "devDependencies": {
