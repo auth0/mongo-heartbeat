@@ -64,4 +64,46 @@ describe('mongo-heartbeat', function () {
       done();
     });
   });
+
+  it('should support custom check', function (done) {
+    var hb = new Heartbeat(db, {
+      interval: 100,
+      checkHandler: function(database, cb) {
+        database.collection('someCollectionWithFewRecords').find({ }, cb);
+      }
+    });
+
+    hb.on('heartbeat', function () {
+      hb.stop();
+      done();
+    });
+  });
+
+  it('should timeout when the custom check doesnt respond', function (done) {
+    var hb = new Heartbeat(db, {
+      interval: 100,
+      timeout: 100,
+      checkHandler: function(database, cb) {
+
+      }
+    });
+    hb.on('error', function (err) {
+      expect(err.message).to.equal('the command didn\'t respond in 100ms');
+      done();
+    });
+  });
+
+  it('should raise an error when the custom check fails', function (done) {
+    var hb = new Heartbeat(db, {
+      interval: 100,
+      checkHandler: function(database, cb) {
+        database.removeUser('someUserThatDoesNotReallyExist', cb);
+      }
+    });
+
+    hb.on('error', function (err) {
+      expect(err.message).to.equal('User \'someUserThatDoesNotReallyExist@test\' not found');
+      done();
+    });
+  });
 });

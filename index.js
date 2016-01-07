@@ -9,7 +9,10 @@ var EventEmitter = require('events').EventEmitter;
 var defaults = {
   timeout: 10000,
   interval: 5000,
-  tolerance: 1
+  tolerance: 1,
+  checkHandler: function(db, callback) {
+    db.command({ping: 1}, callback);
+  }
 };
 
 function Pinger(db, options) {
@@ -36,7 +39,7 @@ Pinger.prototype._check = function check(callback) {
     return callback(err);
   }
 
-  db.command({ping: 1}, cb(function (err) {
+  self._options.checkHandler(db, cb(function (err) {
     self._current_failures = err ? (self._current_failures + 1) : 0;
     if (err && self._current_failures >= self._options.tolerance) {
       var error = err;
