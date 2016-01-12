@@ -10,7 +10,7 @@
     "type": "git",
     "url": "http://github.com/auth0/mongo-heartbeat.git"
   },
-  "author": "José F. Romaniello <jfromaniello@gmail.com> (http://joseoncode.com)",
+  "author": "Auth0",
   "license": "MIT",
   "dependencies": {
     "cb": "~0.1.0",
