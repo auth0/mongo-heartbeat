@@ -19,7 +19,8 @@ describe('mongo-heartbeat', function () {
       interval: 100
     });
 
-    hb.on('heartbeat', function () {
+    hb.on('heartbeat', function (data) {
+      expect(data.delay).to.be.a.Number;
       hb.stop();
       done();
     });
@@ -42,6 +43,7 @@ describe('mongo-heartbeat', function () {
   it('should timeout when the command doesnt respond 2 pings when tolerance is 2', function (done) {
     var called_once = false;
     var called_twice = false;
+    var failed_count = 0;
     var mockDb = {
       command: function (options, callback) {
         if (called_once) {
@@ -57,9 +59,14 @@ describe('mongo-heartbeat', function () {
       timeout: 100,
       tolerance: 2
     });
+    hb.on('failed', function(err) {
+      expect(err).to.exist;
+      failed_count++;
+    });
     hb.on('error', function (err) {
       expect(hb._current_failures).to.equal(2);
       assert.ok(called_twice);
+      expect(failed_count).to.equal(1);
       expect(err.message).to.equal('the command didn\'t respond in 100ms after 2 attempts');
       done();
     });

@@ -36,9 +36,11 @@ Pinger.prototype._check = function check(callback) {
     return callback(err);
   }
 
-  db.command({ping: 1}, cb(function (err) {
+  var start = Date.now();
+  db.command({ ping: 1 }, cb(function (err) {
+    // _current_failures will restart if was healthy in previous cases
     self._current_failures = err ? (self._current_failures + 1) : 0;
-    if (err && self._current_failures >= self._options.tolerance) {
+    if (err) {
       var error = err;
 
       if (err instanceof cb.TimeoutError) {
@@ -49,11 +51,16 @@ Pinger.prototype._check = function check(callback) {
         }
       }
 
-      return fail(error);
+      if (self._current_failures >= self._options.tolerance) {
+        return fail(error);
+      } else {
+        self.emit('failed', error);
+        return callback();
+      }
     }
-    self.emit('heartbeat');
+    self.emit('heartbeat', { delay: Date.now() - start });
     debug('heartbeat');
-    callback();
+    return callback();
   }).timeout(this._options.timeout));
 };
 
