@@ -4,25 +4,20 @@ var assert  = require('chai').assert;
 var Heartbeat = require('../');
 
 describe('mongo-heartbeat', function () {
-  var db;
-
-  before(function (done) {
-    MongoClient.connect('mongodb://localhost/test', function (err, $db) {
-      if (err) return done(err);
-      db = $db;
-      done();
-    });
-  });
-
   it('should emit the heartbeat event', function (done) {
-    var hb = new Heartbeat(db, {
-      interval: 100
-    });
+    MongoClient.connect('mongodb://localhost/test', function (err, client) {
+      if (err) return done(err);
 
-    hb.on('heartbeat', function (data) {
-      expect(data.delay).to.be.a.Number;
-      hb.stop();
-      done();
+      var hb = new Heartbeat(client.db('test'), {
+        interval: 100
+      });
+
+      hb.on('heartbeat', function (data) {
+        expect(data.delay).to.be.a('number');
+        hb.stop();
+        client.close();
+        done();
+      });
     });
   });
 
